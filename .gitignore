@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Project Specific
+Processing_Cache/
+NotebookLM_Ready/
+Failed_PDFs/
+.venv/
+env/
+venv/
+.env
+
+# Misc
+.DS_Store
+Thumbs.db
