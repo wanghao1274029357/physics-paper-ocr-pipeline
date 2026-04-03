@@ -1,88 +1,71 @@
-# ⚛️ Physics Paper OCR Pipeline (NotebookLM Edition)
-### 物理论文 OCR 转换管线 (NotebookLM 专供版)
+# ⚛️ 物理论文解析工具 (NotebookLM 深度优化版)
+### Physics Paper OCR Converter (Optimized for NotebookLM)
 
-A specialized Python OCR pipeline optimized for converting complex physics research papers into high-fidelity PDFs specifically tailored for Google's **NotebookLM** and **Gemini 1.5**.
+这是一套专为物理学研究人员打造的 PDF 转换方案，旨在将排版复杂的物理论文（多栏、高频公式）精准转换为最适合 **NotebookLM** 和 **Gemini 1.5** 阅读的 Markdown 及高保真 PDF。
 
-许多期刊原始 PDF 直接上传到 NotebookLM 时，由于多栏排版、复杂的公式混合以及背景水印，常会出现布局混乱、分栏错位或公式乱码等现象，极大影响 AI 的逻辑推理。本工具旨在通过本地高性能 OCR 重新排版，生成最适合 AI 阅读的 RAG 高保真文档。
-
----
-
-## 🌟 Key Features / 核心特性
-
-*   **FIG-Academic Rule (图注识别规则)**: Intelligently identifies and matches figure captions using standard academic keywords. Correctly groups multi-block captions split by page breaks.
-    *   自动识别并提取图注。如果由于分页导致图注断裂，系统会自动将其重新缝合并恢复完整语义。
-*   **Semantic Stitching Engine (语义拼接引擎)**: Automatically heals paragraphs and captions split by layout shifts or mathematical formulas (`$`).
-    *   针对物理论文中由于图片插空或 LaTeX 公式（如 `$ \omega $`）导致的语义断断续续，系统会自动进行拼接处理，还原流畅语流。
-*   **Dual-Phase Stall Detection (双阶段死锁监测)**: Monitors output silence and real-time GPU activity (`nvidia-smi`) to prevent deadlocks during high-load processing.
-    *   实时监测 GPU 负载，防止在处理高密集度公式或图像时发生“假死锁”，确保无人值守批量完成整个文件夹。
-*   **Failed File Auto-Recovery (失败文件自动归档)**: Automatically moves corrupted or crashed PDFs into a specialized folder to ensure unattended batch processing continuity.
-    *   **失败自动归档**：若遇到损坏或导致崩溃的 PDF，脚本会自动将其拷贝至 `Failed_PDFs/` 文件夹，确保整个批处理流程不会中断。
-*   **Local Hardware Powered (本地算力驱动)**: All OCR tasks are performed on your **local GPU**. Processing speed depends on your local hardware specifications (VRAM and CUDA efficiency).
-    *   所有识别任务完全依靠本地显卡执行，处理速度高度取决于你本地显卡的性能。
-*   **Layout Strategy (布局策略)**:
-    *   **Short Docs (<100k chars)**: Automatically moves figures and captions to a dedicated appendix to avoid interrupting the main semantic flow for RAG.
-    *   **Long Docs**: Preserves in-situ placement with semantic italicized captions.
-    *   根据文章长度自动调节布局：短文档将图文分离（图注置顶）以获得极致检索精度，长文档则保留原位排版。
+由于多栏布局、复杂的公式嵌套以及背景水印等干扰，原始 PDF 直接上传到 NotebookLM 往往会出现分栏错位、语义断裂或公式乱码，这会严重干扰 AI 的学术推理。本工具通过本地高性能识别引擎，将论文重新排版，生成最干净、逻辑最连贯的 RAG（检索增强生成）语料。
 
 ---
 
-## 🧠 OCR Implementation & Model Architecture / OCR 实现与模型架构
+## 🌟 核心亮点 (Key Features)
 
-The pipeline leverages **marker-pdf**'s high-fidelity inference engine, which combines several SOTA (State-of-the-Art) multimodal models:
-
-本转换管线基于 **marker-pdf** 的高保真推理引擎，深度整合了多项学术级 SOTA 模型：
-
-1.  **Surya (Layout & OCR)**: High-precision line ordering and text extraction specifically tailored for complex multi-column academic layouts.
-    *   **Surya (布局与 OCR)**: 提供高精度行排序与文字提取，能够完美处理物理期刊中常见的错位多栏布局。
-2.  **Texify (LaTeX & Formulas)**: A specialized model designed to transform complex mathematical notation into clean, editable Markdown LaTeX syntax.
-    *   **Texify (公式识别)**: 专攻学术论文中极其复杂的物理/数学公式，将其原汁原味地转换为标准的 LaTeX 语法。
-3.  **Segmenter (Heuristic Block Recognition)**: Intelligently isolates data figures, tables, and headers/footers from the main semantic body to ensure superior RAG performance in NotebookLM.
-    *   **分段模型 (区块识别)**: 智能识别并剥离图片、表格以及页眉页脚，确保正文语义流的纯净，从而极大提升 NotebookLM 的检索增强生成 (RAG) 幻觉抑制能力。
-
-*Note: These models are automatically downloaded from Hugging Face during the first execution. / 注：上述模型将在首次运行时从 Hugging Face 自动下载。*
+*   **学术图注识别 (FIG-Academic Rule)**: 智能识别学术论文中的图片标注。针对那些跨页导致的断裂图注，系统会自动完成语义缝合。
+*   **语义修复引擎 (Semantic Stitching Engine)**: 物理论文中常见的 LaTeX 公式（如 `$ \omega $`）常会导致 OCR 识别后的段落断开。本工具能自动识别此类“假断句”，还原论文原本的流畅语感。
+*   **全流程容错 (Failed File Auto-Recovery)**: 在处理超大规模论文包时，如果遇到损坏或引起崩溃的奇异 PDF，系统会自动将其挪至 `Failed_PDFs/` 目录，确保整个批处理流程不会中断。
+*   **灵活的排版策略 (Layout Strategy)**:
+    *   **短篇论文**: 将图表与图注统一置顶（附录模式），避免插图干扰 AI 对正文逻辑的理解。
+    *   **长篇综述**: 保留图文原位排版，同时对图注进行斜体标注，增强 AI 的语义区分度。
 
 ---
 
-## 🚀 Quick Start / 快速上手
+## 🧠 技术架构 (Model Architecture)
 
-### 1. Prerequisites / 环境依赖
-Ensure you have an NVIDIA GPU with latest drivers, and install the base dependencies:
-确保装有 NVIDIA 显卡驱动，一键安装依赖：
+本方案底层深度联动了多项顶尖的多模态识别模型，实现“软硬兼修”：
+
+1.  **Surya (布局分析)**: 负责高精度的行间距排序，能完美拆解物理期刊中那些令人头疼的异形多栏排版。
+2.  **Texify (公式识别)**: 专为学术而生，负责将复杂的物理公式精准转化为可编辑、可搜索的标准 LaTeX 语法。
+3.  **区块识别模型**: 智能剥离页眉、页脚、广告图片和杂碎表格，只将最有价值的“学术干货”喂给 AI，极大提升 NotebookLM 的问答质量。
+
+*注：相关模型组件会在首次运行时自动下载。*
+
+---
+
+## 🚀 快速上手 (Quick Start)
+
+### 1. 环境准备
+确保你的电脑装有 NVIDIA 显卡驱动，一键安装必要组件：
 
 ```bash
 pip install reportlab marker-pdf
 ```
 
-### 3. Usage / 使用方法
-Run the batch processor on your target folder containing research PDFs:
+### 2. 运行方式
+在终端直接运行脚本，并指定包含 PDF 的目标文件夹：
 
 ```bash
-python batch_processor.py "C:\Path\To\Your\Papers"
+python batch_processor.py "C:\你的文献存放路径"
 ```
 
 ---
 
-## 🛠️ Manual Intervention Guide / 人工干预指南
+## 🛠️ 疑难杂症处理 (Manual Intervention Guide)
 
-由于学术期刊排版千奇百怪，为了应对极个别复杂情况，你可以通过以下工作流手动修正结果：
+虽然本地识别已经足够强大，但面对排版过于奇葩的古老文献或特殊增刊，你可以尝试以下“人工补刀”方案：
 
-### 场景 A：PDF 中出现了无用的网页元素图片（如按钮、导航条）
-1.  进入 `Processing_Cache/` 文件夹，找到对应文档的子目录。
-2.  手动删除多余的 `.jpeg` 图片文件。
-3.  删除 `NotebookLM_Ready/` 中生成的对应 PDF 文件。
-4.  **重新运行脚本**。脚本会提示 `[📂] 发现缓存数据`，并根据你清理后的缓存重新渲染干净的 PDF。
+### 场景 A：识别出了无关紧要的杂碎图片（如网页按钮、导航条）
+1.  进入 `Processing_Cache/` 文件夹，找到对应的文档目录。
+2.  手动删掉多余的 `.jpeg` 图片。
+3.  删掉 `NotebookLM_Ready/` 里的成品 PDF，然后重新运行脚本，系统会基于你清理后的缓存重新渲染。
 
-### 场景 B：有效图块未成功抓取图注
-如果终端提示某张有效图片未匹配到图注：
-1.  这可能说明该文献排版极端混乱，或者是由于 **“一图多报”** 现象（一张大图被 OCR 拆分为 (a)(b)(c) 等多个子图块并行排列），它们往往在末端共用一个大图注。建议同时检查该处其他子图的对应情况。
-2.  打开 `Processing_Cache/` 中对应的 `.md` 文件。
-3.  将对应的图注文字（如一段以 Fig. 开头的内容）移动到该图片引用（`![]`）的 **紧随其后的下一段**。
-4.  删除 `Fig. X` 编号前面的 OCR 杂质。
-5.  删除成品 PDF 并重新运行脚本即可。
+### 场景 B：图片和图注没对上（一图多报或排版过于混乱）
+如果终端报警提示某些有效图片没找到图注：
+1.  **原因分析**：可能是由于一张大图里包含了 (a)(b)(c) 多个子图共用一个总图注，或者是排版由于 LaTeX 公式干扰导致断页。
+2.  **手动对齐**：打开 `Processing_Cache/` 对应目录下的 `.md` 文件，将图注文字移动到图片引用代码（`![]`）的后方，并清理前面的杂质文字。
+3.  **重刷**：保存后再次运行脚本即可完成修正。
 
 ---
 
-## 📁 Output Structure / 输出结构
-*   **Processing_Cache/**: Stores intermediate Markdown, images, and hashes for deterministic caching. (缓存区)
-*   **NotebookLM_Ready/**: High-fidelity PDFs ready to be dropped into NotebookLM. (成品区)
-*   **Failed_PDFs/**: Problematic or corrupted files moved here automatically for manual review. (失败区)
+## 📁 目录说明
+*   **Processing_Cache/**: 缓存中间产物（Markdown、图片碎片），方便人工随时介入调优。
+*   **NotebookLM_Ready/**: 最终产出的成品 PDF，直接拖入 NotebookLM 即可。
+*   **Failed_PDFs/**: 自动收集导致系统崩溃的“顽固分子”，方便后期复盘。
