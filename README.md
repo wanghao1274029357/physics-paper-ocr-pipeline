@@ -26,6 +26,23 @@ A specialized Python OCR pipeline optimized for converting complex physics resea
 
 ---
 
+## 🧠 OCR Implementation & Model Architecture / OCR 实现与模型架构
+
+The pipeline leverages **marker-pdf**'s high-fidelity inference engine, which combines several SOTA (State-of-the-Art) multimodal models:
+
+本转换管线基于 **marker-pdf** 的高保真推理引擎，深度整合了多项学术级 SOTA 模型：
+
+1.  **Surya (Layout & OCR)**: High-precision line ordering and text extraction specifically tailored for complex multi-column academic layouts.
+    *   **Surya (布局与 OCR)**: 提供高精度行排序与文字提取，能够完美处理物理期刊中常见的错位多栏布局。
+2.  **Texify (LaTeX & Formulas)**: A specialized model designed to transform complex mathematical notation into clean, editable Markdown LaTeX syntax.
+    *   **Texify (公式识别)**: 专攻学术论文中极其复杂的物理/数学公式，将其原汁原味地转换为标准的 LaTeX 语法。
+3.  **Segmenter (Heuristic Block Recognition)**: Intelligently isolates data figures, tables, and headers/footers from the main semantic body to ensure superior RAG performance in NotebookLM.
+    *   **分段模型 (区块识别)**: 智能识别并剥离图片、表格以及页眉页脚，确保正文语义流的纯净，从而极大提升 NotebookLM 的检索增强生成 (RAG) 幻觉抑制能力。
+
+*Note: These models are automatically downloaded from Hugging Face during the first execution. / 注：上述模型将在首次运行时从 Hugging Face 自动下载。*
+
+---
+
 ## 🚀 Quick Start / 快速上手
 
 ### 1. Prerequisites / 环境依赖
