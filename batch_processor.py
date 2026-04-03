@@ -311,7 +311,6 @@ def process_directory(input_folder):
     
     if not os.path.exists(output_dir): os.makedirs(output_dir)
     if not os.path.exists(cache_dir): os.makedirs(cache_dir)
-    if not os.path.exists(failed_dir): os.makedirs(failed_dir)
     
     for idx, pdf in enumerate(pdfs):
         filename = os.path.basename(pdf)
