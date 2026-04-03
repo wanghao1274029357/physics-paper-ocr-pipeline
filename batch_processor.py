@@ -227,7 +227,12 @@ def clean_and_build_pdf(md_path, output_pdf):
             
     doc.build(story)
     if unmatched_images:
-        unique_failed = sorted(list(set(unmatched_images)))
+        import re
+        def natural_sort_key(s):
+            return [int(text) if text.isdigit() else text.lower()
+                    for text in re.split(r'(\d+)', s)]
+                    
+        unique_failed = sorted(list(set(unmatched_images)), key=natural_sort_key)
         print(f"       [⚠️] 注意：以下图片未匹配到符合 FIG-规则 的图注（可能是网页碎图片）：")
         print(f"           {', '.join(unique_failed)}")
         print(f"       [💡] 提示：针对未匹配成功的有效图片（可能是文献排版混乱、图注跨段或是 (a)(b)(c) 子图块共用总图注），请人工检查 MD 文件确保图注紧随图片引用之后且无前缀杂质，修正并删除成品 PDF 后重新运行即可。")
