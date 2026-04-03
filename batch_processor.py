@@ -227,16 +227,12 @@ def clean_and_build_pdf(md_path, output_pdf):
             
     doc.build(story)
     if unmatched_images:
-        import re
         def natural_sort_key(s):
-            return [int(text) if text.isdigit() else text.lower()
-                    for text in re.split(r'(\d+)', s)]
-                    
+            return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
         unique_failed = sorted(list(set(unmatched_images)), key=natural_sort_key)
         print(f"       [⚠️] 注意：以下图片未匹配到符合 FIG-规则 的图注（可能是网页碎图片）：")
         print(f"           {', '.join(unique_failed)}")
-        print(f"       [💡] 提示：针对未匹配成功的有效图片（可能是文献排版混乱、图注跨段或是 (a)(b)(c) 子图块共用总图注），请人工检查 MD 文件确保图注紧随图片引用之后且无前缀杂质，修正并删除成品 PDF 后重新运行即可。")
-        print(f"       [📝] 若有图没抓取到图注，请人工检查 MD 文件，将图注移动到图片引用的下一段，并删除 Fig. X 前面的杂质后重新运行即可。")
+        print(f"       [💡] 提示：若有效图块未抓取到图注（可能是排版混乱、图注跨段或 (a)(b)(c) 子图共用总图注），请人工在 MD 文件中将图注移动到对应图片引用 ( ![] ) 的下一段，并删除 'Fig.' 前的杂质字，保存后删除成品 PDF 重新运行即可。")
 
 # ============================================================
 # 批处理核心引擎
@@ -311,6 +307,7 @@ def process_directory(input_folder):
     
     if not os.path.exists(output_dir): os.makedirs(output_dir)
     if not os.path.exists(cache_dir): os.makedirs(cache_dir)
+    if not os.path.exists(failed_dir): os.makedirs(failed_dir)
     
     for idx, pdf in enumerate(pdfs):
         filename = os.path.basename(pdf)
