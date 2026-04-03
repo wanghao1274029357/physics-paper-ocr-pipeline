@@ -302,12 +302,10 @@ def run_marker_with_stall_detection(cmd, stall_timeout=600):
 def process_directory(input_folder):
     pdfs = glob.glob(os.path.join(input_folder, "*.pdf"))
     output_dir = os.path.join(input_folder, "NotebookLM_Ready")
-    failed_dir = os.path.join(input_folder, "Failed_PDFs")
     cache_dir = os.path.join(input_folder, "Processing_Cache")
     
     if not os.path.exists(output_dir): os.makedirs(output_dir)
     if not os.path.exists(cache_dir): os.makedirs(cache_dir)
-    if not os.path.exists(failed_dir): os.makedirs(failed_dir)
     
     for idx, pdf in enumerate(pdfs):
         filename = os.path.basename(pdf)
@@ -363,8 +361,9 @@ def process_directory(input_folder):
                 print(f"       [✅ 成功] {int(time.time()-start_t)}s")
             except Exception as e:
                 print(f"       [❌ 失败]: {str(e)}")
-                # 自动静默回收失败文件
+                # 仅在失败时按需创建文件夹
                 try:
+                    failed_dir = os.path.join(input_folder, "Failed_PDFs")
                     if not os.path.exists(failed_dir): os.makedirs(failed_dir)
                     shutil.copy2(pdf, os.path.join(failed_dir, filename))
                 except:
