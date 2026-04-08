@@ -343,8 +343,9 @@ def process_directory(input_folder):
                 shutil.rmtree(temp_md_folder, ignore_errors=True)
                 run_marker_with_stall_detection(s_cmd)
             if os.path.exists(temp_md_folder):
-                shutil.rmtree(md_folder, ignore_errors=True)
-                shutil.move(temp_md_folder, md_folder)
+                if os.path.abspath(temp_md_folder) != os.path.abspath(md_folder):
+                    shutil.rmtree(md_folder, ignore_errors=True)
+                    shutil.move(temp_md_folder, md_folder)
                 mds = glob.glob(os.path.join(md_folder, "*.md"))
                 if mds:
                     md_file = os.path.join(md_folder, f"{safe_name}.md")
