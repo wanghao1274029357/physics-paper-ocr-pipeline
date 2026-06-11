@@ -86,6 +86,14 @@ def main():
     try:
         result = subprocess.run(cmd, check=True)
         if result.returncode == 0:
+            # 打包成功后，将 batch_processor.py 拷贝到 exe 所在的同级目录下
+            dest_dir = "dist/gui_app" if mode == "--onedir" else "dist"
+            try:
+                shutil.copy2("batch_processor.py", os.path.join(dest_dir, "batch_processor.py"))
+                print(f"[Done] Copied batch_processor.py to {dest_dir} successfully.")
+            except Exception as e:
+                print(f"[WARN] Failed to copy batch_processor.py to {dest_dir}: {e}")
+
             print("\n" + "="*60)
             print("[Done] Packaging completed successfully!")
             if mode == "--onefile":
