@@ -21,6 +21,15 @@ class PDFProcessorApp(ctk.CTk):
         self.title("PDF OCR Pipeline for NotebookLM")
         self.geometry("850x700")
         self.minsize(800, 600)
+        
+        # 增加运行时窗体图标
+        import os
+        try:
+            icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.ico")
+            if os.path.exists(icon_path):
+                self.iconbitmap(icon_path)
+        except Exception:
+            pass
 
         # 状态变量
         self.process = None
@@ -350,6 +359,34 @@ class PDFProcessorApp(ctk.CTk):
             self.reset_ui_after_job()
             self.progress_label.configure(text="状态：⏹ 任务已手动终止。")
 
+    def _open_folder_and_select_file(self, event, filepath):
+        import os
+        import subprocess
+        if os.path.exists(filepath):
+            subprocess.Popen(rf'explorer /select,"{filepath}"')
+
+    def _insert_with_hyperlink(self, text):
+        import re
+        link_match = re.search(r'(\[🔗 戳此打开缓存文件夹\]:\s*)(.*)', text)
+        if link_match:
+            prefix_text = text[:link_match.start(2)]
+            path_text = link_match.group(2)
+            suffix_text = text[link_match.end(2):]
+            
+            self.log_textbox.insert("end", prefix_text)
+            
+            tag_name = f"link_{hash(path_text)}"
+            self.log_textbox.tag_config(tag_name, foreground="#3b82f6", underline=True)
+            self.log_textbox.tag_bind(tag_name, "<Enter>", lambda e: self.log_textbox.configure(cursor="hand2"))
+            self.log_textbox.tag_bind(tag_name, "<Leave>", lambda e: self.log_textbox.configure(cursor=""))
+            self.log_textbox.tag_bind(tag_name, "<Button-1>", lambda e, p=path_text.strip(): self._open_folder_and_select_file(e, p))
+            
+            self.log_textbox.insert("end", path_text, tag_name)
+            if suffix_text:
+                self.log_textbox.insert("end", suffix_text)
+        else:
+            self.log_textbox.insert("end", text)
+
     def smart_append_log(self, text, end_char):
         # 智能追加日志，支持 tqdm 就地刷新，且保护不同任务历史不被覆盖
         if not text and end_char == '\n':
@@ -364,13 +401,13 @@ class PDFProcessorApp(ctk.CTk):
         # 判断是否应该原地刷新（前提：上一个是 \r，且当前行有前缀且前缀不变）
         if self._last_was_cr and self._last_prefix == prefix and prefix != "":
             self.log_textbox.delete("end-1c linestart", "end-1c")
-            self.log_textbox.insert("end", text)
+            self._insert_with_hyperlink(text)
         else:
             if self._last_was_cr:
                 # 给上一个被终端挂起的独立 \r 任务追加一个换行，保护其历史不被覆盖
                 self.log_textbox.insert("end", "\n")
             if text:
-                self.log_textbox.insert("end", text)
+                self._insert_with_hyperlink(text)
                 
         if end_char == '\n':
             self.log_textbox.insert("end", "\n")

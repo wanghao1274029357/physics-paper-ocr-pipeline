@@ -232,7 +232,8 @@ def clean_and_build_pdf(md_path, output_pdf):
         unique_failed = sorted(list(set(unmatched_images)), key=natural_sort_key)
         print(f"       [⚠️] 注意：以下图片未匹配到符合 FIG-规则 的图注（可能是网页碎图片）：")
         print(f"           {', '.join(unique_failed)}")
-        print(f"       [💡] 提示：若有效图块未抓取到图注（可能是排版混乱、图注跨段或 (a)(b)(c) 子图共用总图注），请人工在 MD 文件中将图注移动到对应图片引用 ( ![] ) 的下一段，并删除 'Fig.' 前的杂质字，保存后删除成品 PDF 重新运行即可。")
+        print(f"       [💡] 提示：若有效图块未抓取到图注（可能是排版混乱、图注跨段或子图共用），请人工修改缓存文件中的图注并重新运行。")
+        print(f"       [🔗 戳此打开缓存文件夹]: {os.path.abspath(md_path)}")
 
 # ============================================================
 # 批处理核心引擎
